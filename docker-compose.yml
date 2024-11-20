@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000" # Exposes Flask on port 5000
+    volumes:
+      - ./backend:/app # Syncs backend code for live updates
+    environment:
+      - FLASK_ENV=development # Sets Flask environment to development
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80" # Maps Nginx (serving React) to port 3000
+    volumes:
+      - ./frontend:/src # Syncs frontend code for development
+    depends_on:
+      - backend # Ensures the backend starts first for inter-service communication
