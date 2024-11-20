@@ -1,4 +1,4 @@
-### Create Docker Compose File for Frontend and Backend
+### Create a Docker Compose file to enable service-to-service communication between the Frontend and Backend
 ## Applications
 #### Title: 
 Create Docker Compose File for Frontend and Backend
