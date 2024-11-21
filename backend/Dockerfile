@@ -1,3 +1,4 @@
+# Step 1: Run Stage
 FROM python:3.8.7-slim-buster
 
 RUN mkdir /app
