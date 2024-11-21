@@ -11,16 +11,16 @@ jobs:
     - name: checkout github code
       uses: actions/checkout@v2
     
-    -name: Login to Docker Hub
-     uses: docker/login-action@v1
-     with:
-      username: ${{ secrets.DOCKER_USERNAME }}
-      password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+       username: ${{ secrets.DOCKER_USERNAME }}
+       password: ${{ secrets.DOCKER_PASSWORD }}
     
-    -name : Build and Push Docker Image
-     run: |
-      docker build -t zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }} -f frontend/Dockerfile frontend/ 
-      docker push zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }}
+    - name : Build and Push Docker Image
+      run: |
+       docker build -t zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }} -f frontend/Dockerfile frontend/ 
+       docker push zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }}
 
-      docker build -t zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }} -f backend/Dockerfile backend/
-      docker push zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }}
+       docker build -t zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }} -f backend/Dockerfile backend/
+       docker push zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }}
