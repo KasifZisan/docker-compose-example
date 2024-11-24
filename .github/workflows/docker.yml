@@ -73,7 +73,7 @@ jobs:
       run: |
         if kubectl get pods; then
           echo "Deploying to Minikube..."
-          kubectl apply -f k8s/backend-deployment.yaml
+          kubectl apply -f ../k8s/backend-deployment.yaml
         else
           echo "Error accessing cluster"
           exit 1
@@ -83,7 +83,7 @@ jobs:
       run: |
         if kubectl get pods; then
           echo "Deploying to Minikube..."
-          kubectl apply -f k8s/backend-deployment.yaml
+          kubectl apply -f ../k8s/frontend-deployment.yaml
         else
           echo "Error accessing cluster"
           exit 1
