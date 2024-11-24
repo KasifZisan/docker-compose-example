@@ -8,12 +8,15 @@ services:
     ports:
       - "5000:5000" # Exposes Flask on port 5000
     volumes:
-      - ./backend:/app # Syncs backend code for live updates
+      - ./backend:/app # this is a bind mount
+      # - app_data:/app    this is a docker volume
     environment:
       - FLASK_APP=app.py  # Ensure the Flask app is recognized
       - FLASK_ENV=development # Sets Flask environment to development
     networks:
       - app-network  # Create a shared network for communication
+
+    # image: <image-name>:<tag>
 
   frontend:
     build:
@@ -31,3 +34,7 @@ services:
 networks:
   app-network:
     driver: bridge  # Ensures communication between services
+
+'''volumes:
+      app_data
+'''

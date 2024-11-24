@@ -24,3 +24,75 @@ jobs:
 
        docker build -t zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }} -f backend/Dockerfile backend/
        docker push zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }}
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: kubectl installation
+      run : |
+        if !kubectl version --client; then
+          echo "kubectl is not installed. Installing now..."
+          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+          sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+
+        else
+          echo "kubectl already installed."
+        fi
+
+    - name: Check if minikube is running  
+      run : |
+        if ! minikube status --format '{{.Host}}' | grep "Running"; then
+          echo "Minikube is not running. Starting minikube..."
+          minikube start --nodes 3 -p test-cluster --driver=docker
+        
+        else
+          echo "Minikube is already running."
+        fi
+
+    - name: Verify Kubernetes Access
+      run: |
+        if kubectl get nodes; then
+          echo "Kubernetes cluster is accessible."
+        else
+          echo "error accessing the cluster"
+          exit 1
+        fi
+
+    - name: Get minikube cluster info
+      run: |
+        if kubectl cluster-info; then
+          echo "Cluster information fetched successfully."
+        else
+          echo "Cluster is not reachable."
+        fi
+
+    - name: Deploy Backend to minikube
+      run: |
+        if kubectl get pods; then
+          echo "Deploying to Minikube..."
+          kubectl apply -f k8s/backend-deployment.yml
+        else
+          echo "Error accessing cluster"
+          exit 1
+        fi
+
+    - name: Deploy Frontend to minikube
+      run: |
+        if kubectl get pods; then
+          echo "Deploying to Minikube..."
+          kubectl apply -f k8s/backend-deployment.yml
+        else
+          echo "Error accessing cluster"
+          exit 1
+        fi
+
+    - name: Verify Pods are running
+      run: |
+        if kubectl get pods; then
+          kubectl get pods -o wide
+        else
+          echo "Failed to verify pods."
+        fi
+      
+      
