@@ -19,11 +19,13 @@ jobs:
     
     - name : Build and Push Docker Image
       run: |
-       docker build -t zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }} -f frontend/Dockerfile frontend/ 
-       docker push zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }}
-
+       echo "Building and Pushing the Backend"
        docker build -t zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }} -f backend/Dockerfile backend/
        docker push zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }}
+       
+       echo "Building and Pushing the Frontend"
+       docker build -t zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }} -f frontend/Dockerfile frontend/ 
+       docker push zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }}
   
   deploy:
     runs-on: ubuntu-latest
@@ -71,7 +73,7 @@ jobs:
       run: |
         if kubectl get pods; then
           echo "Deploying to Minikube..."
-          kubectl apply -f k8s/backend-deployment.yml
+          kubectl apply -f k8s/backend-deployment.yaml
         else
           echo "Error accessing cluster"
           exit 1
@@ -81,7 +83,7 @@ jobs:
       run: |
         if kubectl get pods; then
           echo "Deploying to Minikube..."
-          kubectl apply -f k8s/backend-deployment.yml
+          kubectl apply -f k8s/backend-deployment.yaml
         else
           echo "Error accessing cluster"
           exit 1
