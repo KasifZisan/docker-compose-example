@@ -142,7 +142,6 @@ jobs:
           fi
 
           # Step 9: Deploy Backend to minikube
-          cd docker-compose-example
           if kubectl get pods; then
             echo "Step 9: Deploying to Minikube..."
             kubectl apply -f /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
@@ -152,7 +151,6 @@ jobs:
           fi
 
           # Step 10: Deploy Frontend to minikube
-          cd docker-compose-example
           if kubectl get pods; then
             echo "Step 10: Deploying to Minikube..."
             kubectl apply -f /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
