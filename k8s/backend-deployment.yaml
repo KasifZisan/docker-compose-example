@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: backend
-        image: zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }}
+        image: kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
         ports:
         - containerPort: 5000

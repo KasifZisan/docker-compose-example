@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }}
+        image: kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
         ports:
         - containerPort: 80
