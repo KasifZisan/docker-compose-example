@@ -38,119 +38,119 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_KEY }}
         script : |
-          # Add user to the docker group if not already a member
+          # Step - 1: Add user to the docker group if not already a member
           sudo usermod -aG docker $USER
           newgrp docker
 
-          # Check if Docker is installed
+          # Step 2: Check if Docker is installed
           if ! [ -x "$(command -v docker)" ]; then
-            echo "Docker is not installed. Installing Docker..."
+            echo "Step 2: Docker is not installed. Installing Docker..."
             sudo apt update -y
             sudo apt install docker.io -y
             sudo systemctl enable docker
           else
-            echo "Docker is already installed."
+            echo "Step 2: Docker is already installed."
           fi
 
-          # Verify Docker installation
+          # Step 3: Verify Docker installation
           if docker --version; then
-            echo "Docker installed successfully."
+            echo "Step 3: Docker installed successfully."
           else
-            echo "Failed to install Docker."
+            echo "Step 3: Failed to install Docker."
             exit 1
           fi
-          
-          # Install kubectl if not already installed
-          if !kubectl version --client; then
-            echo "kubectl is not installed. Installing now..."
 
-            echo "downloading kubectl...""
+          # Step 4: Install kubectl if not already installed
+          if !kubectl version --client; then
+            echo "Step 4: kubectl is not installed. Installing now..."
+
+            echo "Step 4: downloading kubectl...""
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             
-            echo "validating the binary - downloading kubectl checksum file...""
+            echo "Step 4: validating the binary - downloading kubectl checksum file...""
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
             
-            echo "validate the kubectl binary against the checksum file..."
+            echo "Step 4: validate the kubectl binary against the checksum file..."
             echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
 
             if [ $? -eq 0 ]; then
-              echo "Checksum is valid."
+              echo "Step 4: Checksum is valid."
             else
-              echo "Checksum validation failed. Exiting..."
+              echo "Step 4: Checksum validation failed. Exiting..."
               exit 1
             fi
 
-            echo "Installing kubectl..."
+            echo "Step 4: Installing kubectl..."
             sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
           else
-            echo "kubectl already installed."
+            echo "Step 4: kubectl already installed."
           fi
           
-          # Install minikube if not installed
+          # Step 5: Install minikube if not installed
           if ! minikube version; then
-            echo "Minikube is not installed. Installing now..."
+            echo "Step 5: Minikube is not installed. Installing now..."
             curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
             sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
           else
-            echo "Minikube is already installed."
+            echo "Step 5: Minikube is already installed."
           fi
 
-          # Check if minikube is running
+          # Step 6: Check if minikube is running
           if ! minikube status --format '{{.Host}}' | grep "Running"; then
-            echo "Minikube is not running. Starting minikube..."
+            echo "Step 6: Minikube is not running. Starting minikube..."
             minikube start --nodes 2 -p test-cluster --driver=docker
           
           else
-            echo "Minikube is already running."
+            echo "Step 6: Minikube is already running."
           fi
 
-          # Verify Kubernetes Access
+          # Step 7: Verify Kubernetes Access
           if kubectl get nodes; then
-            echo "Kubernetes cluster is accessible."
+            echo "Step 7: Kubernetes cluster is accessible."
           else
-            echo "error accessing the cluster"
+            echo "Step 7: error accessing the cluster"
             exit 1
           fi
 
-          # Get minikube cluster info
+          # Step 8: Get minikube cluster info
           if kubectl cluster-info; then
-            echo "Cluster information fetched successfully."
+            echo "Step 8: Cluster information fetched successfully."
           else
-            echo "Cluster is not reachable."
+            echo "Step 8: Cluster is not reachable."
           fi
 
-          # Fetch Latest Code using git checkout
-          echo "Checking out the git and Pulling the latest version"
+          # Step 9: Fetch Latest Code using git checkout
+          echo "Step 9: Checking out the git and Pulling the latest version"
           cd docker-compose-example
           git checkout main
           git pull -u origin main
 
-          # Deploy Backend to minikube
+          # Step 10: Deploy Backend to minikube
           cd docker-compose-example
           if kubectl get pods; then
-            echo "Deploying to Minikube..."
+            echo "Step 10: Deploying to Minikube..."
             kubectl apply -f k8s/backend-deployment.yaml
           else
-            echo "Error accessing cluster"
+            echo "Step 10: Error accessing cluster"
             exit 1
           fi
 
-          # Deploy Frontend to minikube
+          # Step 11: Deploy Frontend to minikube
           cd docker-compose-example
           if kubectl get pods; then
-            echo "Deploying to Minikube..."
+            echo "Step 11: Deploying to Minikube..."
             kubectl apply -f k8s/frontend-deployment.yaml
           else
-            echo "Error accessing cluster"
+            echo "Step 11: Error accessing cluster"
             exit 1
           fi
 
-          # Verify Pods are running
+          # Step 12: Verify Pods are running
           if kubectl get pods; then
             kubectl get pods -o wide
           else
-            echo "Failed to verify pods."
+            echo "Step 12: Failed to verify pods."
           fi
       
   # deploy:
