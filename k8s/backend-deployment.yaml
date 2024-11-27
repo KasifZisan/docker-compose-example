@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: backend
-        image: kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
+        image: kasifzisandocker/zisan-docker-example:backend-${GITHUB_SHA}
         ports:
         - containerPort: 5000

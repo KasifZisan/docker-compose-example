@@ -128,8 +128,8 @@ jobs:
 
           # Step 10: Replace GitHub SHA in the deployment files
           echo "Step 10: Replace GitHub SHA in the deployment files"
-          sed -i "s|backend-\${{ github.sha }}|backend-${GITHUB_SHA}|" k8s/backend-deployment.yaml
-          sed -i "s|frontend-\${{ github.sha }}|frontend-${GITHUB_SHA}|" k8s/frontend-deployment.yaml
+          sed -i "s|\${GITHUB_SHA}|${GITHUB_SHA}|" k8s/backend-deployment.yaml
+          sed -i "s|\${GITHUB_SHA}|${GITHUB_SHA}|" k8s/frontend-deployment.yaml
 
           # Step 11: Deploy Backend to minikube
           cd docker-compose-example
