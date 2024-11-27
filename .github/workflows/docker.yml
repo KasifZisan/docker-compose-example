@@ -20,81 +20,125 @@ jobs:
     - name : Build and Push Docker Image
       run: |
        echo "Building and Pushing the Backend"
-       docker build -t zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }} -f backend/Dockerfile backend/
-       docker push zisandockerhub/flask-app-docker-compose:backend-${{ github.sha }}
+       docker build -t kasifzisandocker/zisan-docker-example:backend-${{ github.sha }} -f backend/Dockerfile backend/
+       docker push kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
        
        echo "Building and Pushing the Frontend"
-       docker build -t zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }} -f frontend/Dockerfile frontend/ 
-       docker push zisandockerhub/flask-app-docker-compose:frontend-${{ github.sha }}
+       docker build -t kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }} -f frontend/Dockerfile frontend/ 
+       docker push kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
   
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #   - name: kubectl installation
+  #     run : |
+  #       if !kubectl version --client; then
+  #         echo "kubectl is not installed. Installing now..."
+  #         curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+  #         sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+
+  #       else
+  #         echo "kubectl already installed."
+  #       fi
+
+  #   - name: Check if minikube is running  
+  #     run : |
+  #       if ! minikube status --format '{{.Host}}' | grep "Running"; then
+  #         echo "Minikube is not running. Starting minikube..."
+  #         minikube start --nodes 3 -p test-cluster --driver=docker
+        
+  #       else
+  #         echo "Minikube is already running."
+  #       fi
+
+  #   - name: Verify Kubernetes Access
+  #     run: |
+  #       if kubectl get nodes; then
+  #         echo "Kubernetes cluster is accessible."
+  #       else
+  #         echo "error accessing the cluster"
+  #         exit 1
+  #       fi
+
+  #   - name: Get minikube cluster info
+  #     run: |
+  #       if kubectl cluster-info; then
+  #         echo "Cluster information fetched successfully."
+  #       else
+  #         echo "Cluster is not reachable."
+  #       fi
+
+  #   - name: Deploy Backend to minikube
+  #     run: |
+  #       if kubectl get pods; then
+  #         echo "Deploying to Minikube..."
+  #         kubectl apply -f ../k8s/backend-deployment.yaml
+  #       else
+  #         echo "Error accessing cluster"
+  #         exit 1
+  #       fi
+
+  #   - name: Deploy Frontend to minikube
+  #     run: |
+  #       if kubectl get pods; then
+  #         echo "Deploying to Minikube..."
+  #         kubectl apply -f ../k8s/frontend-deployment.yaml
+  #       else
+  #         echo "Error accessing cluster"
+  #         exit 1
+  #       fi
+
+  #   - name: Verify Pods are running
+  #     run: |
+  #       if kubectl get pods; then
+  #         kubectl get pods -o wide
+  #       else
+  #         echo "Failed to verify pods."
+  #       fi
+      
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - name: kubectl installation
-      run : |
-        if !kubectl version --client; then
-          echo "kubectl is not installed. Installing now..."
-          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+    - name: SSH into EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_KEY }}
+        script: |
+          # Check if Docker is installed
+          if ! [ -x "$(command -v docker)" ]; then
+            echo "Docker is not installed. Installing Docker..."
+            sudo apt update -y
+            sudo apt install docker.io -y
+            sudo usermod -aG docker $USER
+            sudo systemctl enable docker
+          else
+            echo "Docker is already installed."
+          fi
 
-        else
-          echo "kubectl already installed."
-        fi
+          # Verify Docker installation
+          if docker --version; then
+            echo "Docker installed successfully."
+          else
+            echo "Failed to install Docker."
+            exit 1
+          fi
 
-    - name: Check if minikube is running  
-      run : |
-        if ! minikube status --format '{{.Host}}' | grep "Running"; then
-          echo "Minikube is not running. Starting minikube..."
-          minikube start --nodes 3 -p test-cluster --driver=docker
-        
-        else
-          echo "Minikube is already running."
-        fi
+          echo "Pulling Backend Docker Image"
+          docker pull kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
 
-    - name: Verify Kubernetes Access
-      run: |
-        if kubectl get nodes; then
-          echo "Kubernetes cluster is accessible."
-        else
-          echo "error accessing the cluster"
-          exit 1
-        fi
+          echo "Pulling Frontend Docker Image"
+          docker pull kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
 
-    - name: Get minikube cluster info
-      run: |
-        if kubectl cluster-info; then
-          echo "Cluster information fetched successfully."
-        else
-          echo "Cluster is not reachable."
-        fi
+          echo "Running the Backend docker image"
+          docker stop backend || true && docker rm backend || true
+          docker run -d --name backend -p 5000:5000 kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
 
-    - name: Deploy Backend to minikube
-      run: |
-        if kubectl get pods; then
-          echo "Deploying to Minikube..."
-          kubectl apply -f ../k8s/backend-deployment.yaml
-        else
-          echo "Error accessing cluster"
-          exit 1
-        fi
+          echo "Running the Frontend docker image"
+          docker stop frontend || true && docker rm frontend || true
+          docker run -d --name frontend -p 80:80 kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
 
-    - name: Deploy Frontend to minikube
-      run: |
-        if kubectl get pods; then
-          echo "Deploying to Minikube..."
-          kubectl apply -f ../k8s/frontend-deployment.yaml
-        else
-          echo "Error accessing cluster"
-          exit 1
-        fi
 
-    - name: Verify Pods are running
-      run: |
-        if kubectl get pods; then
-          kubectl get pods -o wide
-        else
-          echo "Failed to verify pods."
-        fi
-      
-      

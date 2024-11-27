@@ -6,35 +6,28 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "5000:5000" # Exposes Flask on port 5000
+      - "5000:5000" 
     volumes:
-      - ./backend:/app # this is a bind mount
-      # - app_data:/app    this is a docker volume
+      - ./backend:/app 
     environment:
-      - FLASK_APP=app.py  # Ensure the Flask app is recognized
-      - FLASK_ENV=development # Sets Flask environment to development
+      - FLASK_APP=app.py  
+      - FLASK_ENV=development 
     networks:
-      - app-network  # Create a shared network for communication
-
-    # image: <image-name>:<tag>
+      - app-network  
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80" # Maps Nginx (serving React) to port 3000
+      - "3000:80" 
     volumes:
-      - ./frontend:/src # Syncs frontend code for development
+      - ./frontend:/src 
     depends_on:
-      - backend # Ensures the backend starts first for inter-service communication
+      - backend 
     networks:
-      - app-network  # Share the same network to connect frontend with backend
+      - app-network 
   
 networks:
   app-network:
-    driver: bridge  # Ensures communication between services
-
-'''volumes:
-      app_data
-'''
+    driver: bridge 
