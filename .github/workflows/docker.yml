@@ -126,31 +126,36 @@ jobs:
           git checkout main
           git pull -u origin main
 
-          # Step 10: Deploy Backend to minikube
-          cd docker-compose-example
-          if kubectl get pods; then
-            echo "Step 10: Deploying to Minikube..."
-            kubectl apply -f k8s/backend-deployment.yaml
-          else
-            echo "Step 10: Error accessing cluster"
-            exit 1
-          fi
+          # Step 10: Replace GitHub SHA in the deployment files
+          echo "Step 10: Replace GitHub SHA in the deployment files"
+          sed -i "s|backend-\${{ github.sha }}|backend-${GITHUB_SHA}|" k8s/backend-deployment.yaml
+          sed -i "s|frontend-\${{ github.sha }}|frontend-${GITHUB_SHA}|" k8s/frontend-deployment.yaml
 
-          # Step 11: Deploy Frontend to minikube
+          # Step 11: Deploy Backend to minikube
           cd docker-compose-example
           if kubectl get pods; then
             echo "Step 11: Deploying to Minikube..."
-            kubectl apply -f k8s/frontend-deployment.yaml
+            kubectl apply -f k8s/backend-deployment.yaml
           else
             echo "Step 11: Error accessing cluster"
             exit 1
           fi
 
-          # Step 12: Verify Pods are running
+          # Step 12: Deploy Frontend to minikube
+          cd docker-compose-example
+          if kubectl get pods; then
+            echo "Step 12: Deploying to Minikube..."
+            kubectl apply -f k8s/frontend-deployment.yaml
+          else
+            echo "Step 12: Error accessing cluster"
+            exit 1
+          fi
+
+          # Step 13: Verify Pods are running
           if kubectl get pods; then
             kubectl get pods -o wide
           else
-            echo "Step 12: Failed to verify pods."
+            echo "Step 13: Failed to verify pods."
           fi
       
   # deploy:
