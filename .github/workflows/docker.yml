@@ -108,12 +108,15 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_KEY }}
         script: |
+          # Add user to the docker group if not already a member
+          sudo usermod -aG docker $USER
+          newgrp docker
+
           # Check if Docker is installed
           if ! [ -x "$(command -v docker)" ]; then
             echo "Docker is not installed. Installing Docker..."
             sudo apt update -y
             sudo apt install docker.io -y
-            sudo usermod -aG docker $USER
             sudo systemctl enable docker
           else
             echo "Docker is already installed."
@@ -128,17 +131,17 @@ jobs:
           fi
 
           echo "Pulling Backend Docker Image"
-          docker pull kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
+          sudo docker pull kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
 
           echo "Pulling Frontend Docker Image"
-          docker pull kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
+          sudo docker pull kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
 
           echo "Running the Backend docker image"
-          docker stop backend || true && docker rm backend || true
-          docker run -d --name backend -p 5000:5000 kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
+          sudo docker stop backend || true && docker rm backend || true
+          sudo docker run -d --name backend -p 5000:5000 kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
 
           echo "Running the Frontend docker image"
-          docker stop frontend || true && docker rm frontend || true
-          docker run -d --name frontend -p 80:80 kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
+          sudo docker stop frontend || true && docker rm frontend || true
+          sudo docker run -d --name frontend -p 80:80 kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
 
 
