@@ -90,8 +90,7 @@ jobs:
         script : |
           if ! minikube status --format '{{.Host}}' | grep "Running"; then
             echo "Minikube is not running. Starting minikube..."
-            # minikube start --nodes 3 -p test-cluster --driver=docker
-            minikube start --nodes 3 -p test-cluster --driver=none
+            minikube start --nodes 2 -p test-cluster --driver=docker
           
           else
             echo "Minikube is already running."
