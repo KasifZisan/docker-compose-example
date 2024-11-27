@@ -137,11 +137,17 @@ jobs:
           sudo docker pull kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
 
           echo "Running the Backend docker image"
-          sudo docker stop backend || true && docker rm backend || true
+          if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^backend$"; then
+            sudo docker stop backend
+            sudo docker rm backend
+          fi
           sudo docker run -d --name backend -p 5000:5000 kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
 
           echo "Running the Frontend docker image"
-          sudo docker stop frontend || true && docker rm frontend || true
+          if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^frontend$"; then
+            sudo docker stop frontend
+            sudo docker rm frontend
+          fi
           sudo docker run -d --name frontend -p 80:80 kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
 
 
