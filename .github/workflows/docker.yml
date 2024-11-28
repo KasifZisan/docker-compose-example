@@ -35,138 +35,138 @@ jobs:
 
 
 
-  #   - name: Login to Docker Hub
-  #     uses: docker/login-action@v1
-  #     with:
-  #      username: ${{ secrets.DOCKER_USERNAME }}
-  #      password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+       username: ${{ secrets.DOCKER_USERNAME }}
+       password: ${{ secrets.DOCKER_PASSWORD }}
     
-  #   - name : Build and Push Docker Image
-  #     run: |
-  #      echo "Building and Pushing the Backend"
-  #      docker build -t kasifzisandocker/zisan-docker-example:backend-${{ github.sha }} -f backend/Dockerfile backend/
-  #      docker push kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
+    - name : Build and Push Docker Image
+      run: |
+       echo "Building and Pushing the Backend"
+       docker build -t kasifzisandocker/zisan-docker-example:backend-${{ github.sha }} -f backend/Dockerfile backend/
+       docker push kasifzisandocker/zisan-docker-example:backend-${{ github.sha }}
        
-  #      echo "Building and Pushing the Frontend"
-  #      docker build -t kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }} -f frontend/Dockerfile frontend/ 
-  #      docker push kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
+       echo "Building and Pushing the Frontend"
+       docker build -t kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }} -f frontend/Dockerfile frontend/ 
+       docker push kasifzisandocker/zisan-docker-example:frontend-${{ github.sha }}
     
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   steps:
-  #   - name: SSH into EC2 and setup Docker, Kubectl, Minikube and Deploy
-  #     uses: appleboy/ssh-action@master
-  #     with:
-  #       host: ${{ secrets.EC2_HOST }}
-  #       username: ubuntu
-  #       key: ${{ secrets.EC2_KEY }}
-  #       script : |
-  #         # Step - 1: Add user to the docker group if not already a member
-  #         sudo usermod -aG docker $USER
-  #         newgrp docker
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: SSH into EC2 and setup Docker, Kubectl, Minikube and Deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_KEY }}
+        script : |
+          # Step - 1: Add user to the docker group if not already a member
+          sudo usermod -aG docker $USER
+          newgrp docker
 
-  #         # Step 2: Check if Docker is installed
-  #         if ! [ -x "$(command -v docker)" ]; then
-  #           echo "Step 2: Docker is not installed. Installing Docker..."
-  #           sudo apt update -y
-  #           sudo apt install docker.io -y
-  #           sudo systemctl enable docker
-  #         else
-  #           echo "Step 2: Docker is already installed."
-  #         fi
+          # Step 2: Check if Docker is installed
+          if ! [ -x "$(command -v docker)" ]; then
+            echo "Step 2: Docker is not installed. Installing Docker..."
+            sudo apt update -y
+            sudo apt install docker.io -y
+            sudo systemctl enable docker
+          else
+            echo "Step 2: Docker is already installed."
+          fi
 
-  #         # Step 3: Verify Docker installation
-  #         if docker --version; then
-  #           echo "Step 3: Docker installed successfully."
-  #         else
-  #           echo "Step 3: Failed to install Docker."
-  #           exit 1
-  #         fi
+          # Step 3: Verify Docker installation
+          if docker --version; then
+            echo "Step 3: Docker installed successfully."
+          else
+            echo "Step 3: Failed to install Docker."
+            exit 1
+          fi
 
-  #         # Step 4: Install kubectl if not already installed
-  #         if !kubectl version --client; then
-  #           echo "Step 4: kubectl is not installed. Installing now..."
+          # Step 4: Install kubectl if not already installed
+          if !kubectl version --client; then
+            echo "Step 4: kubectl is not installed. Installing now..."
 
-  #           echo "Step 4: downloading kubectl...""
-  #           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            echo "Step 4: downloading kubectl...""
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             
-  #           echo "Step 4: validating the binary - downloading kubectl checksum file...""
-  #           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+            echo "Step 4: validating the binary - downloading kubectl checksum file...""
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
             
-  #           echo "Step 4: validate the kubectl binary against the checksum file..."
-  #           echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+            echo "Step 4: validate the kubectl binary against the checksum file..."
+            echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
 
-  #           if [ $? -eq 0 ]; then
-  #             echo "Step 4: Checksum is valid."
-  #           else
-  #             echo "Step 4: Checksum validation failed. Exiting..."
-  #             exit 1
-  #           fi
+            if [ $? -eq 0 ]; then
+              echo "Step 4: Checksum is valid."
+            else
+              echo "Step 4: Checksum validation failed. Exiting..."
+              exit 1
+            fi
 
-  #           echo "Step 4: Installing kubectl..."
-  #           sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            echo "Step 4: Installing kubectl..."
+            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-  #         else
-  #           echo "Step 4: kubectl already installed."
-  #         fi
+          else
+            echo "Step 4: kubectl already installed."
+          fi
           
-  #         # Step 5: Install minikube if not installed
-  #         if ! minikube version; then
-  #           echo "Step 5: Minikube is not installed. Installing now..."
-  #           curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-  #           sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
-  #         else
-  #           echo "Step 5: Minikube is already installed."
-  #         fi
+          # Step 5: Install minikube if not installed
+          if ! minikube version; then
+            echo "Step 5: Minikube is not installed. Installing now..."
+            curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+            sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+          else
+            echo "Step 5: Minikube is already installed."
+          fi
 
-  #         # Step 6: Check if minikube is running
-  #         if ! minikube status --format '{{.Host}}' | grep "Running"; then
-  #           echo "Step 6: Minikube is not running. Starting minikube..."
-  #           minikube start --nodes 2 -p test-cluster --driver=docker
-  #         else
-  #           echo "Step 6: Minikube is already running."
-  #         fi
+          # Step 6: Check if minikube is running
+          if ! minikube status --format '{{.Host}}' | grep "Running"; then
+            echo "Step 6: Minikube is not running. Starting minikube..."
+            minikube start --nodes 2 -p test-cluster --driver=docker
+          else
+            echo "Step 6: Minikube is already running."
+          fi
 
-  #         # Step 7: Verify Kubernetes Access
-  #         if kubectl get nodes; then
-  #           echo "Step 7: Kubernetes cluster is accessible."
-  #         else
-  #           echo "Step 7: error accessing the cluster"
-  #           exit 1
-  #         fi
+          # Step 7: Verify Kubernetes Access
+          if kubectl get nodes; then
+            echo "Step 7: Kubernetes cluster is accessible."
+          else
+            echo "Step 7: error accessing the cluster"
+            exit 1
+          fi
 
-  #         # Step 8: Get minikube cluster info
-  #         if kubectl cluster-info; then
-  #           echo "Step 8: Cluster information fetched successfully."
-  #         else
-  #           echo "Step 8: Cluster is not reachable."
-  #         fi
+          # Step 8: Get minikube cluster info
+          if kubectl cluster-info; then
+            echo "Step 8: Cluster information fetched successfully."
+          else
+            echo "Step 8: Cluster is not reachable."
+          fi
 
-  #         # Step 9: Deploy Backend to minikube
-  #         if kubectl get pods; then
-  #           echo "Step 9: Deploying to Minikube..."
-  #           kubectl apply -f /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
-  #         else
-  #           echo "Step 9: Error accessing cluster"
-  #           exit 1
-  #         fi
+          # Step 9: Deploy Backend to minikube
+          if kubectl get pods; then
+            echo "Step 9: Deploying to Minikube..."
+            kubectl apply -f /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
+          else
+            echo "Step 9: Error accessing cluster"
+            exit 1
+          fi
 
-  #         # Step 10: Deploy Frontend to minikube
-  #         if kubectl get pods; then
-  #           echo "Step 10: Deploying to Minikube..."
-  #           kubectl apply -f /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
-  #         else
-  #           echo "Step 10: Error accessing cluster"
-  #           exit 1
-  #         fi
+          # Step 10: Deploy Frontend to minikube
+          if kubectl get pods; then
+            echo "Step 10: Deploying to Minikube..."
+            kubectl apply -f /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
+          else
+            echo "Step 10: Error accessing cluster"
+            exit 1
+          fi
 
-  #         # Step 11: Verify Pods are running
-  #         if kubectl get pods; then
-  #           kubectl get pods -o wide
-  #         else
-  #           echo "Step 11: Failed to verify pods."
-  #         fi
+          # Step 11: Verify Pods are running
+          if kubectl get pods; then
+            kubectl get pods -o wide
+          else
+            echo "Step 11: Failed to verify pods."
+          fi
       
   # deploy:
   #   runs-on: ubuntu-latest
