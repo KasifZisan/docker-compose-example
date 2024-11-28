@@ -143,41 +143,41 @@ jobs:
             echo "Step 8: Cluster is not reachable."
           fi
 
-          # Step 9: Deploy Backend service to minikube
-          if kubectl get pods; then
-            echo "Step 9: Deploying Backend service..."
-            kubectl apply -f /home/ubuntu/docker-compose/k8s/backend-service.yaml
-          else
-            echo "Step 9: Error accessing cluster"
-            exit 1
-          fi
+          # Step 9: Ingress Install
+          # Check if ingress controller is already installed
+          kubectl get ingress -A
+          if [ $? -ne 0 ]; then
+            # If not installed, install nginx ingress controller
+            kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
 
-          # Step 10: Deploy Frontend service to minikube
+            # Wait for NGINX Ingress controller to be ready
+            kubectl wait --namespace ingress-nginx \
+              --for=condition=ready pod \
+              --selector=app.kubernetes.io/component=controller \
+              --timeout=120s
+          fi
+          echo "Applying Ingress"
+          kubectl apply -f /home/ubuntu/docker-compose/k8s/ingress.yaml
+
+
+          # Step 10: Deploy Backend to minikube
           if kubectl get pods; then
-            echo "Step 10: Deploying Frontend service..."
-            kubectl apply -f /home/ubuntu/docker-compose/k8s/frontend-service.yaml
+            echo "Step 10: Deploying Backend..."
+            kubectl apply -f /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
           else
             echo "Step 10: Error accessing cluster"
             exit 1
           fi
 
-          # Step 11: Deploy Backend to minikube
+          # Step 11: Deploy Frontend to minikube
           if kubectl get pods; then
-            echo "Step 11: Deploying Backend..."
-            kubectl apply -f /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
+            echo "Step 11: Deploying Frontend..."
+            kubectl apply -f /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
           else
             echo "Step 11: Error accessing cluster"
             exit 1
           fi
 
-          # Step 12: Deploy Frontend to minikube
-          if kubectl get pods; then
-            echo "Step 12: Deploying Frontend..."
-            kubectl apply -f /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
-          else
-            echo "Step 12: Error accessing cluster"
-            exit 1
-          fi
       
   # deploy:
   #   runs-on: ubuntu-latest
