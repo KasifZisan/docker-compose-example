@@ -31,7 +31,7 @@ jobs:
           echo "Replace GitHub SHA in the deployment files"
           GITHUB_SHA=${{ github.sha }}
           sed -i "s|kasifzisandocker/zisan-docker-example:backend-.*|kasifzisandocker/zisan-docker-example:backend-${GITHUB_SHA}|" /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
-          sed -i "s|kasifzisandocker/zisan-docker-example:frontend-.*|kasifzisandocker/zisan-docker-example:frontend-${GITHUB_SHA}|" /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
+          sed -i "s|kasifzisandocker/zisan-docker-example:frontend-.*|kasifzisandocker/zisan-docker-example:frontend-${GITHUB_SHA}|" /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
 
 
 
