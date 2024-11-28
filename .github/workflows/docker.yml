@@ -143,29 +143,40 @@ jobs:
             echo "Step 8: Cluster is not reachable."
           fi
 
-          # Step 9: Deploy Backend to minikube
+          # Step 9: Deploy Backend service to minikube
           if kubectl get pods; then
-            echo "Step 9: Deploying to Minikube..."
-            kubectl apply -f /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
+            echo "Step 9: Deploying Backend service..."
+            kubectl apply -f /home/ubuntu/docker-compose/k8s/backend-service.yaml
           else
             echo "Step 9: Error accessing cluster"
             exit 1
           fi
 
-          # Step 10: Deploy Frontend to minikube
+          # Step 10: Deploy Frontend service to minikube
           if kubectl get pods; then
-            echo "Step 10: Deploying to Minikube..."
-            kubectl apply -f /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
+            echo "Step 10: Deploying Frontend service..."
+            kubectl apply -f /home/ubuntu/docker-compose/k8s/frontend-service.yaml
           else
             echo "Step 10: Error accessing cluster"
             exit 1
           fi
 
-          # Step 11: Verify Pods are running
+          # Step 11: Deploy Backend to minikube
           if kubectl get pods; then
-            kubectl get pods -o wide
+            echo "Step 11: Deploying Backend..."
+            kubectl apply -f /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
           else
-            echo "Step 11: Failed to verify pods."
+            echo "Step 11: Error accessing cluster"
+            exit 1
+          fi
+
+          # Step 12: Deploy Frontend to minikube
+          if kubectl get pods; then
+            echo "Step 12: Deploying Frontend..."
+            kubectl apply -f /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
+          else
+            echo "Step 12: Error accessing cluster"
+            exit 1
           fi
       
   # deploy:
