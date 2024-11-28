@@ -29,8 +29,9 @@ jobs:
         key: ${{ secrets.EC2_KEY }}
         script: |
           echo "Replace GitHub SHA in the deployment files"
-          sed -i "s|backend-\${{ github.sha }}|backend-${{ github.sha }}|" /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
-          sed -i "s|frontend-\${{ github.sha }}|frontend-${{ github.sha }}|" /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
+          GITHUB_SHA=${{ github.sha }}
+          sed -i "s|backend-${GITHUB_SHA}|backend-${GITHUB_SHA}|" /home/ubuntu/docker-compose/k8s/backend-deployment.yaml
+          sed -i "s|frontend-${GITHUB_SHA}|frontend-${GITHUB_SHA}|" /home/ubuntu/docker-compose/k8s/frontend-deployment.yaml
 
 
   #   - name: Login to Docker Hub
